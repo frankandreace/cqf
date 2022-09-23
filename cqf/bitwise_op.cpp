@@ -4,6 +4,8 @@
 #include <chrono>     // for std::chrono::high_resolution_clock
 #include <string.h>
 
+#include "filter.hpp"
+
 using namespace std;
 
 #define MEM_UNIT 8
@@ -51,10 +53,7 @@ void fillcqf(vector<uint8_t> cqf, uint64_t vector_size){
 }
 
 int main(int argc, char** argv) {
-    uint64_t vector_size = 5;
-
-    
-
+    //uint64_t vector_size = 5;
     //vector<uint8_t> cqf;
     //cqf.reserve(vector_size);
 
