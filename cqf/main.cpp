@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     cqf.print_slice(0,5);
     cqf.print_bits(0,16);
     cqf.print_slice(0,16);
-
+    cqf.print_word(15);
     cout << "15 to 192" << endl;
     cqf.print_slice(15,160);
 
@@ -53,50 +53,6 @@ int main(int argc, char** argv) {
     cqf.print_bits(64,64);
     cqf.print_bits(128,64);
 
-
-    /*
-    uint64_t len = 70;
-
-    uint64_t mask = ((1ULL << len) - 1);
-
-    uint64_t mask_el1 = (len == 64);
-    uint64_t mask_el11 = -(len == 64);
-    uint64_t mask_el2 = ((1ULL << len) - 1);
-    cout << "(len==64): " << mask_el1 << endl;
-    printbits(&mask_el1);
-    cout << "-(len==64): " << mask_el11 << endl;
-    printbits(&mask_el11);
-    cout << "((1ULL << len) - 1): " << mask_el2 << endl;
-    printbits(&mask_el2);
-    cout << "mask value: " << mask << endl;
-    uint64_t* mask_p = &mask;
-    printbits(mask_p);
-
-    cqf.setInt(0,0b11110001000011100011111010010101110011111);
-    cqf.setInt(1,2070652201884L);
-
-    for(int i = 2; i < 10; ++i){
-        cqf.setInt(i,3*i);
-    }
-    cout << "printvector" << endl;
-
-    cqf.printVector(0,9);
-
-    cout << "printvector" << endl;
-
-    cqf.printVector(1,2);
-
-    cout << "print" << endl;
-
-    cqf.printBits(0,64);
-
-    cout << "print" << endl;
-
-    cqf.printBits(64,64);
-
-    cout << "range" << endl;
-
-    cqf.printRangeBits( point,109,12);
-    */
+    
     return 0;
 }

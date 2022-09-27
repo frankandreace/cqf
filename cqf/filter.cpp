@@ -67,7 +67,7 @@ vector<uint64_t> Cqf::get_slice(uint64_t pos, uint64_t len) const{
     }
 
     slice[num_int] = get_bits(pos+(num_int*MEM_UNIT), rem);
-
+    
     return slice;
 }
 
@@ -77,12 +77,27 @@ uint64_t Cqf::get_bits(uint64_t pos, uint64_t len) const {
 
     if (!len) return 0;
 
-    uint64_t block =get_block(pos);
+    uint64_t block = get_block(pos);
     uint64_t shift = get_shift(pos);
+    uint64_t mask = mask_right(len);
 
-    if (shift + len <= MEM_UNIT) return (cqf[block] >> shift) & mask_right(len);
+    if (shift + len <= MEM_UNIT) return (cqf[block] >> shift) & mask;
 
-    return (cqf[block] >> shift) | ((cqf[block+1] << (MEM_UNIT - shift)) & mask_right(len-(MEM_UNIT-shift)));
+    return (cqf[block] >> shift) | ((cqf[block+1] << (MEM_UNIT - shift)) & mask);
+    //return (cqf[block] >> shift) | ((cqf[block+1] & mask_right(len-(MEM_UNIT-shift))) << (MEM_UNIT - shift));
+}
+
+uint64_t Cqf::get_word(uint64_t pos) const{
+    assert(pos + MEM_UNIT <= num_bits());
+    uint64_t block = get_block(pos);
+    uint64_t shift = get_shift(pos);
+    uint64_t word = cqf[block] >> shift;
+
+    if (shift > 0 && block+1 < num_64bit_words()){
+        word |= (cqf[block+1] << (MEM_UNIT - shift));
+    }
+
+    return word;
 }
 
 void Cqf::print_slice(uint64_t pos, uint64_t len) const {
@@ -98,10 +113,24 @@ void Cqf::print_slice(uint64_t pos, uint64_t len) const {
 void Cqf::print_bits(uint64_t pos, uint64_t len) const {
 
     uint64_t bits = get_bits(pos,len);
+    uint64_t b = bits;
     for (uint64_t j = 0; j < len; ++j){
-            cout << (bits & 0b1);
-        bits >>= 1;
+            cout << (b & 0b1);
+        b >>= 1;
     }
+    cout << " | ";
+    uint8_t* temp = (uint8_t*)&bits;
+    for (uint64_t j = 0; j < (len/8)+1; ++j){
+        uint8_t byte_num = *temp;
+        cout << +byte_num << " ";
+        temp++;
+    } 
     cout << endl;
-
 }
+
+void Cqf::print_word(uint64_t pos) const{
+    
+    uint64_t word = get_word(pos);
+    cout << word << endl;
+}
+
