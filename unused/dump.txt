@@ -1,0 +1,110 @@
+
+
+    Cqf( uint64_t  ); // constructor
+    ~Cqf();                           // destructor 
+
+    uint64_t* getArrPt();
+    void printVector(uint64_t start, uint64_t end);
+    void setInt(uint64_t start, uint64_t number);
+    void setBits(uint64_t start,uint64_t offset, uint64_t length);
+    void printBits(uint64_t startbit, uint64_t length);
+    void printBitsPos(uint64_t* start, uint64_t length);
+    void printRangeBits(uint64_t* start, uint64_t length, uint64_t offset);
+
+
+Cqf::Cqf( uint64_t number_of_blocks ){ // constructor
+
+    cqf = new uint64_t[(MEM_UNIT * number_of_blocks)]; 
+    memset(cqf, 0, MEM_UNIT * number_of_blocks);
+    len_cqf = number_of_blocks;
+
+}
+
+Cqf::~Cqf(){                            // destructor 
+   // or free?
+}
+
+
+
+
+
+
+void Cqf::printVector(uint64_t start, uint64_t end){ // printing a slice of the vector
+    uint64_t* start_point = cqf + start;
+    uint64_t* end_point = cqf + end;
+    for(uint64_t* j = start_point; j <= end_point; ++j){
+        cout << *j << " ";
+        printBitsPos(j,64);
+    }
+    cout << endl;
+}
+
+void Cqf::setInt(uint64_t start, uint64_t number){ // printing a slice of the vector
+    uint64_t* start_point = cqf + start;
+    *start_point = number;
+}
+
+
+void Cqf::setBits(uint64_t start,uint64_t offset, uint64_t length){
+        // 1) clear bits at that position
+        // 2) mask uint64_t
+        // 3) add at position
+}
+
+void Cqf::printBits(uint64_t startbit, uint64_t length){
+    uint64_t quot = startbit / MEM_UNIT;
+    uint64_t rem = startbit % MEM_UNIT;
+    uint64_t* point =  cqf + quot;
+    uint64_t b = *point;
+
+    for (uint64_t j = 0; j < 64; ++j){
+        if (j >= rem){
+            cout << (b & 0b1);
+        }
+        b >>= 1;
+        //bitset<64> mask_bs(b);
+        //cout << mask_bs <<endl;
+    }
+    cout << endl;
+}
+
+void Cqf::printBitsPos(uint64_t* start, uint64_t length){
+    //int64_t quot = length / MEM_UNIT;
+    //uint64_t rem = length % MEM_UNIT;
+    uint64_t b = *start;
+
+    for (uint64_t j = 0; j < MEM_UNIT; ++j){
+        if (j >= MEM_UNIT-length){
+            cout << (b & 0b1);
+        }
+        b >>= 1;
+        //bitset<64> mask_bs(b);
+        //cout << mask_bs <<endl;
+    }
+    cout << endl;
+}
+
+void Cqf::printRangeBits(uint64_t* start, uint64_t length, uint64_t offset){
+    int64_t quot = (length+offset) / MEM_UNIT;
+    uint64_t rem = length % MEM_UNIT;
+    uint64_t b = *(start+quot);
+    uint64_t off = 0;
+    while (quot >= 0) {
+        for (uint64_t j = 0; j < MEM_UNIT; ++j){
+            if (j >= MEM_UNIT-rem && j <= MEM_UNIT-off){
+                cout << (b & 0b1);
+            }
+            b >>= 1;
+            //bitset<64> mask_bs(b);
+            //cout << mask_bs <<endl;
+        }
+        quot -= 1; 
+        b = *(start+quot);
+        rem = 0;
+
+        if (quot == 0){
+            off = offset;
+        }
+    }
+    cout << endl;
+}

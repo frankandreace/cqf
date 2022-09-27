@@ -3,73 +3,105 @@
 #include <vector>
 #include <chrono>     // for std::chrono::high_resolution_clock
 #include <string.h>
+#include <cassert>
 
 #include "filter.hpp" //header in local directory
 
 using namespace std;
 
 #define MEM_UNIT 64
-#define MEM_BLOCK 8
 
-//class Cqf {
-
-    //private:
-    //uint64_t * cqf;
-    //uint64_t len_cqf;
-
-    //public:
-    //Cqf( uint64_t number_of_blocks ); // constructor
-    //~Cqf();                           // destructor 
-
-
-
-Cqf::Cqf( uint64_t number_of_blocks ){ // constructor
-
-    cqf = new uint64_t[(MEM_UNIT * number_of_blocks)]; 
-    memset(cqf, 0, MEM_UNIT * number_of_blocks);
-    len_cqf = number_of_blocks;
+uint64_t mask_right(uint64_t numbits){
+    uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1);
+    return mask;
 }
 
-Cqf::~Cqf(){                            // destructor 
-    delete[](cqf); // or free?
+uint64_t get_block(uint64_t position){
+    return position / MEM_UNIT;
 }
 
-void Cqf::printVector(uint64_t start, uint64_t end){ // printing a slice of the vector
-    uint64_t* start_point = cqf + start;
-    uint64_t* end_point = cqf + end;
-    for(uint64_t* j = start_point; j <= end_point; ++j){
-        cout << *j << " ";
+uint64_t get_shift(uint64_t position){
+    return position % MEM_UNIT;
+}
+
+Cqf::Cqf( uint64_t number_of_blocks ) :
+    cqf(number_of_blocks),
+    m_num_bits(number_of_blocks*MEM_UNIT)
+{ }
+
+uint64_t Cqf::num_bits() const {
+        return m_num_bits;
     }
+
+uint64_t Cqf::num_64bit_words() const {
+        return cqf.size();
+    }
+
+void Cqf::set_bits(uint64_t pos, uint64_t bits_to_set, uint64_t len) {
+    assert(pos + len <= num_bits());
+    assert(len == MEM_UNIT or (bits_to_set >> len) == 0);
+    if (len == 0) return;
+
+    uint64_t mask = mask_right(len);
+    uint64_t block = get_block(pos);
+    uint64_t shift = get_shift(pos);
+
+    cqf[block] &= ~(mask << shift);
+    cqf[block] |= (bits_to_set << shift);
+
+    uint64_t stored = MEM_UNIT - shift;
+
+    if (len > stored){
+        cqf[block+1] &= ~(mask_right(len-stored));
+        cqf[block+1] |= (bits_to_set >> stored);
+    }
+}
+
+vector<uint64_t> Cqf::get_slice(uint64_t pos, uint64_t len) const{
+    uint64_t num_int = get_block(len);
+    uint64_t rem = get_shift(len);
+    vector<uint64_t> slice(num_int+1);
+
+    for(uint64_t j = 0;j < num_int; ++j){
+        slice[j] = get_bits(pos+(j*MEM_UNIT),MEM_UNIT);
+    }
+
+    slice[num_int] = get_bits(pos+(num_int*MEM_UNIT), rem);
+
+    return slice;
+}
+
+uint64_t Cqf::get_bits(uint64_t pos, uint64_t len) const {
+
+    assert(pos + len <= num_bits());
+
+    if (!len) return 0;
+
+    uint64_t block =get_block(pos);
+    uint64_t shift = get_shift(pos);
+
+    if (shift + len <= MEM_UNIT) return (cqf[block] >> shift) & mask_right(len);
+
+    return (cqf[block] >> shift) | ((cqf[block+1] << (MEM_UNIT - shift)) & mask_right(len-(MEM_UNIT-shift)));
+}
+
+void Cqf::print_slice(uint64_t pos, uint64_t len) const {
+    uint64_t num_int = get_block(len);
+    uint64_t rem = get_shift(len);
+    for(uint64_t j = 0; j < num_int; ++j){
+        print_bits(pos+(j*MEM_UNIT),MEM_UNIT);
+    }
+    print_bits(pos+(num_int*MEM_UNIT), rem);
     cout << endl;
 }
 
-void Cqf::setInt(uint64_t start, uint64_t number){ // printing a slice of the vector
-    uint64_t* start_point = cqf + start;
-    *start_point = number;
-}
+void Cqf::print_bits(uint64_t pos, uint64_t len) const {
 
-void Cqf::setBits(uint64_t start,uint64_t offset, uint64_t length){
-        // 1) clear bits at that position
-        // 2) mask uint64_t
-        // 3) add at position
-}
-
-void Cqf::printBits(uint64_t startbit, uint64_t length){
-    uint64_t quot = startbit / MEM_BLOCK;
-    uint64_t rem = startbit % MEM_BLOCK;
-    uint8_t* point = cqf + quot;
-    uint8_t b = *point;
-
-    for (uint8_t j = 0; j < 8; ++j){
-        if (j >= rem){
-            cout << (b & 0b1);
-        }
-        b >>= 1;
+    uint64_t bits = get_bits(pos,len);
+    for (uint64_t j = 0; j < len; ++j){
+            cout << (bits & 0b1);
+        bits >>= 1;
     }
-        
-}
+    cout << endl;
 
-    /*void printInt(uint64_t start,uint64_t offset, uint64_t length){
-        return
-    }*/
-//};
+}

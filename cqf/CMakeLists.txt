@@ -1,6 +1,5 @@
 
 add_library(cqf
-bitwise_op.cpp 
 filter.cpp
 )
 
