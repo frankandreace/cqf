@@ -37,6 +37,10 @@ uint64_t Cqf::num_64bit_words() const {
         return cqf.size();
     }
 
+void Cqf::set_word(uint64_t word, uint64_t pos){
+    cqf[pos] = word;
+}
+
 void Cqf::set_bits(uint64_t pos, uint64_t bits_to_set, uint64_t len) {
     assert(pos + len <= num_bits());
     assert(len == MEM_UNIT or (bits_to_set >> len) == 0);
@@ -125,6 +129,8 @@ void Cqf::print_bits(uint64_t pos, uint64_t len) const {
         cout << +byte_num << " ";
         temp++;
     } 
+    cout << " | ";
+    cout << bits;
     cout << endl;
 }
 

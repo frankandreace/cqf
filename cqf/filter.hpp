@@ -10,6 +10,7 @@ class Cqf {
     Cqf( uint64_t num_blocks); // constructor
     uint64_t num_bits() const;
     uint64_t num_64bit_words() const;
+    void set_word(uint64_t word, uint64_t pos);
     void set_bits(uint64_t pos, uint64_t set_bits, uint64_t len);
     std::vector<uint64_t> get_slice(uint64_t pos, uint64_t len) const;
     uint64_t get_bits(uint64_t pos, uint64_t len) const;

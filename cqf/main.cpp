@@ -6,26 +6,27 @@
 #include <string.h>
 
 #include "filter.hpp"
+#include "tests.hpp"
 
-using namespace std;
 #define MEM_UNIT 64
 
 void printbits(uint64_t* pos){
     uint64_t b = *pos;
     for(uint64_t j = 0; j < 64; ++j){
-        cout << (b & 0b1);
+        std::cout << (b & 0b1);
         b >>= 1;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 int main(int argc, char** argv) {
+    uint64_t filt_len = 50;
+    uint64_t num_el_test_vector = 20;
 
+    Cqf cqf(filt_len);
 
-    Cqf cqf(10);
-
-    cout << "created" << endl;
-
+    std::cout << "created" << std::endl;
+    /*
     for(int i = 2; i < 10; ++i){
         cqf.set_bits(i*(MEM_UNIT/4),0b1011111111110011,MEM_UNIT/4);
     }
@@ -38,21 +39,41 @@ int main(int argc, char** argv) {
     cqf.print_bits(0,16);
     cqf.print_slice(0,16);
     cqf.print_word(15);
-    cout << "15 to 192" << endl;
+    std::cout << "15 to 192" << std::endl;
     cqf.print_slice(15,160);
 
     cqf.print_bits(15,64);
     cqf.print_bits(79,64);
     cqf.print_bits(143,49);
 
-    cout << "0 to 192" << endl;
+    std::cout << "0 to 192" << std::endl;
 
     cqf.print_slice(0,192);
 
     cqf.print_bits(0,64);
     cqf.print_bits(64,64);
     cqf.print_bits(128,64);
+    */
 
+    std::vector<uint64_t> test_vector(num_el_test_vector);
+
+    for(uint64_t j = 0; j < num_el_test_vector; ++j ){
+        test_vector[j] = 0b1011011101111;
+    }
+
+    bool test1 = test_get_bits(cqf,test_vector,2);
+
+    std::cout << std::endl;
+    if (test1) std::cout << "test 1 passed." << std::endl;
+    std::cout << std::endl;
+
+    std::cout << std::endl;
+
+    bool test2 = test_get_bits_shifted(cqf,test_vector,23,11);
+
+    std::cout << std::endl;
+    if (test2) std::cout << "test 2 passed." << std::endl;
     
+    cqf.print_slice(0,MEM_UNIT*45);
     return 0;
 }
