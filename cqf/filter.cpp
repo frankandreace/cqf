@@ -4,12 +4,21 @@
 #include <chrono>     // for std::chrono::high_resolution_clock
 #include <string.h>
 #include <cassert>
+#include <cmath>
 
 #include "filter.hpp" //header in local directory
 
 using namespace std;
 
 #define MEM_UNIT 64
+#define MET_UNIT 3
+#define OFF_POS 0
+#define OCC_POS 1
+#define RUN_POS 2
+
+/*
+ADDITIONAL METHODS NOT USED BY THE CLASS
+*/
 
 uint64_t mask_right(uint64_t numbits){
     uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1);
@@ -24,10 +33,23 @@ uint64_t get_shift(uint64_t position){
     return position % MEM_UNIT;
 }
 
-Cqf::Cqf( uint64_t number_of_blocks ) :
-    cqf(number_of_blocks),
-    m_num_bits(number_of_blocks*MEM_UNIT)
-{ }
+/*
+FILTER CLASS
+*/
+
+Cqf::Cqf( uint64_t quotient_s ){
+    assert(quotient_s < MEM_UNIT);
+
+    quotient_size = quotient_s;
+    remainder_size = MEM_UNIT - quotient_size;
+    uint64_t num_bits_quot = 1ULL << quotient_size;
+    number_blocks = std::ceil(num_bits_quot/MEM_UNIT);
+    uint64_t num_of_words = number_blocks * (MEM_UNIT*(remainder_size+3));
+
+    cqf = vector<uint64_t>(num_of_words);
+    m_num_bits = num_of_words*MEM_UNIT;
+    
+}
 
 uint64_t Cqf::num_bits() const {
         return m_num_bits;
@@ -140,3 +162,104 @@ void Cqf::print_word(uint64_t pos) const{
     cout << word << endl;
 }
 
+
+
+
+
+
+
+
+uint64_t Cqf::get_offset(uint64_t position) const{
+    assert(position < number_blocks);
+    return cqf[position*(3+remainder_size)+OFF_POS];
+}
+
+uint64_t Cqf::get_occupieds(uint64_t position) const{
+    assert(position < number_blocks);
+    return cqf[position*(3+remainder_size)+OCC_POS];
+}
+
+uint64_t Cqf::get_runends(uint64_t position) const{
+    assert(position < number_blocks);
+    return cqf[position*(3+remainder_size)+RUN_POS];
+}
+
+uint64_t Cqf::rank(uint64_t num) const{
+    return popcnt(num);
+}
+
+uint64_t Cqf::select(uint64_t num) const{
+    return bitselect(num,rank(num));
+}
+
+bool Cqf::contains(uint64_t number) const{
+    uint64_t quotient = number & mask_right(quotient_size);
+
+    uint64_t block_id = quotient / MEM_UNIT;
+    uint64_t pos_id = quotient % MEM_UNIT;
+
+    if (((get_occupieds(block_id) >> pos_id) & 1ULL) == 0) return false;
+
+
+
+    //uint64_t reminder = number >> quotient_size;
+    return true;
+}
+
+uint64_t bitselect(uint64_t num, uint64_t rank){
+
+    uint64_t i = 1ULL << rank; // i = 2^rank
+
+    // SELECT(v,i) = TZCNT(PDEP(2^rank,num))     
+	asm("pdep %[num], %[mask], %[num]"
+			: [num] "+r" (num)
+			: [mask] "r" (i));
+
+	asm("tzcnt %[bit], %[index]"
+			: [index] "=r" (i)
+			: [bit] "g" (num)
+			: "cc");
+
+	return i;
+}
+
+
+uint64_t popcnt(uint64_t num){
+    
+    // RANK(v,i) = POPCOUNT(v & (2^(i) -1))
+    asm("popcnt %[num], %[num]"
+                : [num] "+r" (num)
+                :
+                : "cc");
+        return num;
+}
+
+
+/*
+FILTER METHODS
+
+
+// returns the place where the reminder has been put
+uint64_t set_number(uint64_t number, uint64_t qbits){
+    uint64_t quotient = number & mask_right(qbits);
+    uint64_t remainder = number >>= qbits;
+    
+    bool was_occupied = set_occupied(quotient);
+    uint64_t pos_runend = set_runend(quotient);
+
+    uint64_t set_reminder = set_remainder(pos_runend,remainder);
+}
+
+bool set_occupied(uint64_t quotient){
+
+    return false;
+}
+
+uint64_t set_runend(uint64_t quotient){
+
+}
+
+uint64_t set_remainder(uint64_t pos_runend, uint64_t remainder){
+
+}
+*/

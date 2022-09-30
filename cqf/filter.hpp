@@ -19,9 +19,26 @@ class Cqf {
     void print_bits(uint64_t pos, uint64_t len) const;
     void print_word(uint64_t pos) const;
 
+    uint64_t get_offset(uint64_t pos) const;
+    uint64_t get_occupieds(uint64_t pos) const;
+    uint64_t get_runends(uint64_t pos) const;
+
+    uint64_t rank(uint64_t number) const;
+    uint64_t select(uint64_t number) const;
+    bool contains(uint64_t number) const;
+
     private:
     std::vector<uint64_t> cqf;
     uint64_t m_num_bits;
+    uint64_t quotient_size;
+    uint64_t remainder_size;
+    uint64_t number_blocks;
+
+
+
 };
+
+uint64_t bitselect(uint64_t num, uint64_t rank);
+uint64_t popcnt(uint64_t num);
 
 #endif

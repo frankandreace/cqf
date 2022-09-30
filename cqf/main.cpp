@@ -20,7 +20,7 @@ void printbits(uint64_t* pos){
 }
 
 int main(int argc, char** argv) {
-    uint64_t filt_len = 50;
+    uint64_t filt_len = 10;
     uint64_t num_el_test_vector = 20;
 
     Cqf cqf(filt_len);
@@ -75,5 +75,17 @@ int main(int argc, char** argv) {
     if (test2) std::cout << "test 2 passed." << std::endl;
     
     cqf.print_slice(0,MEM_UNIT*45);
+
+    cqf.set_bits(14,0b10111110011,11);
+
+    cqf.print_slice(0,MEM_UNIT*45);
+
+    cqf.set_bits(0,1523,11);
+    cqf.print_slice(0,MEM_UNIT*45);
+
+    std::cout << cqf.get_bits(0,30) << " " << cqf.rank(cqf.get_bits(0,30)) << std::endl;
+    std::cout << cqf.get_bits(2,30) << " " << cqf.rank(cqf.get_bits(2,30)) << std::endl;
+    std::cout << cqf.get_bits(12,30) << " " << cqf.rank(cqf.get_bits(12,30)) << std::endl;
+    std::cout << cqf.get_bits(16,30) << " " << cqf.rank(cqf.get_bits(16,30)) << std::endl;
     return 0;
 }
