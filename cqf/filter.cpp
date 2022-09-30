@@ -200,9 +200,9 @@ bool Cqf::contains(uint64_t number) const{
 
     if (((get_occupieds(block_id) >> pos_id) & 1ULL) == 0) return false;
 
-
-
     //uint64_t reminder = number >> quotient_size;
+    
+    //uint64_t l = bitselect(get_occupieds(block_id));
     return true;
 }
 
@@ -233,6 +233,16 @@ uint64_t popcnt(uint64_t num){
                 : "cc");
         return num;
 }
+
+uint64_t bitrank(uint64_t val, int pos) {
+	val = val & ((2ULL << pos) - 1);
+	asm("popcnt %[val], %[val]"
+			: [val] "+r" (val)
+			:
+			: "cc");
+	return val;
+}
+
 
 
 /*

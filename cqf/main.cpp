@@ -83,9 +83,13 @@ int main(int argc, char** argv) {
     cqf.set_bits(0,1523,11);
     cqf.print_slice(0,MEM_UNIT*45);
 
-    std::cout << cqf.get_bits(0,30) << " " << cqf.rank(cqf.get_bits(0,30)) << std::endl;
-    std::cout << cqf.get_bits(2,30) << " " << cqf.rank(cqf.get_bits(2,30)) << std::endl;
-    std::cout << cqf.get_bits(12,30) << " " << cqf.rank(cqf.get_bits(12,30)) << std::endl;
-    std::cout << cqf.get_bits(16,30) << " " << cqf.rank(cqf.get_bits(16,30)) << std::endl;
+    cqf.print_slice(0,30);
+    std::cout << cqf.rank(cqf.get_bits(0,30)) << " " << cqf.select(cqf.get_bits(0,30)) << std::endl;
+    cqf.print_slice(2,30);
+    std::cout << cqf.rank(cqf.get_bits(2,30)) << " " << cqf.select(cqf.get_bits(2,30)) << std::endl;
+    cqf.print_slice(12,30);
+    std::cout << cqf.rank(cqf.get_bits(12,30)) << " " << cqf.select(cqf.get_bits(12,30)) << std::endl;
+    cqf.print_slice(16,30);
+    std::cout << cqf.rank(cqf.get_bits(16,30)) << " " << cqf.select(cqf.get_bits(16,30)) << std::endl;
     return 0;
 }
