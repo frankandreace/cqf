@@ -10,31 +10,19 @@
 
 using namespace std;
 
+
+// STATIC VARIABLES 
 #define MEM_UNIT 64
 #define MET_UNIT 3
 #define OFF_POS 0
 #define OCC_POS 1
 #define RUN_POS 2
 
-/*
-ADDITIONAL METHODS NOT USED BY THE CLASS
-*/
-
-uint64_t mask_right(uint64_t numbits){
-    uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1);
-    return mask;
-}
-
-uint64_t get_block(uint64_t position){
-    return position / MEM_UNIT;
-}
-
-uint64_t get_shift(uint64_t position){
-    return position % MEM_UNIT;
-}
 
 /*
-FILTER CLASS
+    
+OPERATIONS ON THE ENTIRE CQF
+    
 */
 
 Cqf::Cqf( uint64_t quotient_s ){
@@ -51,6 +39,18 @@ Cqf::Cqf( uint64_t quotient_s ){
     
 }
 
+void Cqf::resize(uint64_t new_size){}
+
+void Cqf::load(){}
+
+void Cqf::save(){}
+
+/*
+
+INFORMATION PROVIDING METHODS
+
+*/
+
 uint64_t Cqf::num_bits() const {
         return m_num_bits;
     }
@@ -59,9 +59,87 @@ uint64_t Cqf::num_64bit_words() const {
         return cqf.size();
     }
 
+ uint64_t Cqf::num_reminders_in_filter() const{}
+
+/*
+
+HIGH LEVEL OPERATIONS
+
+*/
+
+
+uint64_t Cqf::insert(uint64_t number){}
+
+
+uint64_t Cqf::query(uint64_t number) const{}
+
+
+uint64_t Cqf::remove(uint64_t number){}
+
+
+/*
+
+MID LEVEL OPERATIONS
+
+*/
+
+
+uint64_t Cqf::get_reminder(uint64_t quotient) const{}
+
+
+uint64_t Cqf::set_reminder(uint64_t number){}
+
+
+uint64_t Cqf::remove_reminder(uint64_t reminder){}
+
+
+bool Cqf::is_occupied(uint64_t position) const{}
+
+
+uint64_t Cqf::first_unused_slot(uint64_t position) const{}
+
+
+uint64_t Cqf::runend_pos(uint64_t position) const{}
+
+/*
+
+BLOCK LEVEL OPERATIONS
+
+*/
+
+
+uint64_t Cqf::get_reminder_block(uint64_t slot) const{}
+
+
+uint64_t Cqf::set_reminder_block(uint64_t slot){}
+
+
+uint64_t Cqf::remove_reminder_block(uint64_t slot){}
+
+
+bool Cqf::is_occupied_block(uint64_t position) const{}
+
+
+uint64_t Cqf::runend_pos_block(uint64_t position) const{}
+
+
+/*
+
+SMALL LEVEL OPERATIONS
+
+*/
+
+
+uint64_t Cqf::rank(uint64_t value){}
+
+
+uint64_t Cqf::select(uint64_t value){} 
+
+
 void Cqf::set_word(uint64_t word, uint64_t pos){
     cqf[pos] = word;
 }
+
 
 void Cqf::set_bits(uint64_t pos, uint64_t bits_to_set, uint64_t len) {
     assert(pos + len <= num_bits());
@@ -83,19 +161,6 @@ void Cqf::set_bits(uint64_t pos, uint64_t bits_to_set, uint64_t len) {
     }
 }
 
-vector<uint64_t> Cqf::get_slice(uint64_t pos, uint64_t len) const{
-    uint64_t num_int = get_block(len);
-    uint64_t rem = get_shift(len);
-    vector<uint64_t> slice(num_int+1);
-
-    for(uint64_t j = 0;j < num_int; ++j){
-        slice[j] = get_bits(pos+(j*MEM_UNIT),MEM_UNIT);
-    }
-
-    slice[num_int] = get_bits(pos+(num_int*MEM_UNIT), rem);
-    
-    return slice;
-}
 
 uint64_t Cqf::get_bits(uint64_t pos, uint64_t len) const {
 
@@ -113,6 +178,7 @@ uint64_t Cqf::get_bits(uint64_t pos, uint64_t len) const {
     //return (cqf[block] >> shift) | ((cqf[block+1] & mask_right(len-(MEM_UNIT-shift))) << (MEM_UNIT - shift));
 }
 
+
 uint64_t Cqf::get_word(uint64_t pos) const{
     assert(pos + MEM_UNIT <= num_bits());
     uint64_t block = get_block(pos);
@@ -126,6 +192,28 @@ uint64_t Cqf::get_word(uint64_t pos) const{
     return word;
 }
 
+
+/*
+
+PRINTING + DEBUGGING STUFF (SOME OF THEM SHOULD BE MOVED TO PRIVATE OR ELIMINATED)
+
+*/
+
+vector<uint64_t> Cqf::get_slice(uint64_t pos, uint64_t len) const{
+    uint64_t num_int = get_block(len);
+    uint64_t rem = get_shift(len);
+    vector<uint64_t> slice(num_int+1);
+
+    for(uint64_t j = 0;j < num_int; ++j){
+        slice[j] = get_bits(pos+(j*MEM_UNIT),MEM_UNIT);
+    }
+
+    slice[num_int] = get_bits(pos+(num_int*MEM_UNIT), rem);
+    
+    return slice;
+}
+
+
 void Cqf::print_slice(uint64_t pos, uint64_t len) const {
     uint64_t num_int = get_block(len);
     uint64_t rem = get_shift(len);
@@ -135,6 +223,7 @@ void Cqf::print_slice(uint64_t pos, uint64_t len) const {
     print_bits(pos+(num_int*MEM_UNIT), rem);
     cout << endl;
 }
+
 
 void Cqf::print_bits(uint64_t pos, uint64_t len) const {
 
@@ -156,6 +245,7 @@ void Cqf::print_bits(uint64_t pos, uint64_t len) const {
     cout << endl;
 }
 
+
 void Cqf::print_word(uint64_t pos) const{
     
     uint64_t word = get_word(pos);
@@ -163,34 +253,23 @@ void Cqf::print_word(uint64_t pos) const{
 }
 
 
-
-
-
-
-
-
 uint64_t Cqf::get_offset(uint64_t position) const{
     assert(position < number_blocks);
     return cqf[position*(3+remainder_size)+OFF_POS];
 }
+
 
 uint64_t Cqf::get_occupieds(uint64_t position) const{
     assert(position < number_blocks);
     return cqf[position*(3+remainder_size)+OCC_POS];
 }
 
+
 uint64_t Cqf::get_runends(uint64_t position) const{
     assert(position < number_blocks);
     return cqf[position*(3+remainder_size)+RUN_POS];
 }
 
-uint64_t Cqf::rank(uint64_t num) const{
-    return popcnt(num);
-}
-
-uint64_t Cqf::select(uint64_t num) const{
-    return bitselect(num,rank(num));
-}
 
 bool Cqf::contains(uint64_t number) const{
     uint64_t quotient = number & mask_right(quotient_size);
@@ -205,6 +284,33 @@ bool Cqf::contains(uint64_t number) const{
     //uint64_t l = bitselect(get_occupieds(block_id));
     return true;
 }
+
+
+/*
+ADDITIONAL METHODS NOT USED BY THE CLASS
+*/
+
+uint64_t mask_right(uint64_t numbits){
+    uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1);
+    return mask;
+}
+
+
+uint64_t get_block(uint64_t position){
+    return position / MEM_UNIT;
+}
+
+
+uint64_t get_shift(uint64_t position){
+    return position % MEM_UNIT;
+}
+
+
+
+
+/*
+ROB PATRO'S PAPER IMPLEMENTATIONS
+*/
 
 uint64_t bitselect(uint64_t num, uint64_t rank){
 
@@ -234,6 +340,7 @@ uint64_t popcnt(uint64_t num){
         return num;
 }
 
+
 uint64_t bitrank(uint64_t val, int pos) {
 	val = val & ((2ULL << pos) - 1);
 	asm("popcnt %[val], %[val]"
@@ -243,33 +350,3 @@ uint64_t bitrank(uint64_t val, int pos) {
 	return val;
 }
 
-
-
-/*
-FILTER METHODS
-
-
-// returns the place where the reminder has been put
-uint64_t set_number(uint64_t number, uint64_t qbits){
-    uint64_t quotient = number & mask_right(qbits);
-    uint64_t remainder = number >>= qbits;
-    
-    bool was_occupied = set_occupied(quotient);
-    uint64_t pos_runend = set_runend(quotient);
-
-    uint64_t set_reminder = set_remainder(pos_runend,remainder);
-}
-
-bool set_occupied(uint64_t quotient){
-
-    return false;
-}
-
-uint64_t set_runend(uint64_t quotient){
-
-}
-
-uint64_t set_remainder(uint64_t pos_runend, uint64_t remainder){
-
-}
-*/
