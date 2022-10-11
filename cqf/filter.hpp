@@ -17,13 +17,13 @@ class Cqf {
     Cqf( uint64_t num_blocks); 
 
     //resize the cqf
-    void Cqf::resize(uint64_t new_size);
+    void resize(uint64_t new_size);
 
     // load the cqf from a file
-    void Cqf::load();
+    void load();
 
     // save the cqf into a file 
-    void Cqf::save();
+    void save();
 
 
     /*
@@ -32,19 +32,19 @@ class Cqf {
 
     */
     //quotient of a given number
-    uint64_t Cqf::quotient(uint64_t number) const;
+    uint64_t quotient(uint64_t number) const;
 
     //remainder of a given number
-    uint64_t Cqf::remainder(uint64_t number) const;
+    uint64_t remainder(uint64_t number) const;
 
     // num bits occupied by the cqf
-    uint64_t Cqf::num_bits() const;
+    uint64_t num_bits() const;
 
     // length of the uint64_t vector
-    uint64_t Cqf::num_64bit_words() const;
+    uint64_t num_64bit_words() const;
 
     // num ints inserted in the filter
-    uint64_t Cqf::num_reminders_in_filter() const;
+    uint64_t num_reminders_in_filter() const;
 
 
     /*
@@ -54,13 +54,13 @@ class Cqf {
     */
 
     // insert a new number in the filter
-    uint64_t Cqf::insert(uint64_t number);
+    uint64_t insert(uint64_t number);
 
     // query a number from the filter
-    uint64_t Cqf::query(uint64_t number) const;
+    uint64_t query(uint64_t number) const;
 
     // remove(if present) a number from the filter
-    uint64_t Cqf::remove(uint64_t number);
+    uint64_t remove(uint64_t number);
 
 
     /*
@@ -69,34 +69,37 @@ class Cqf {
     
     */
 
+    //shift remainders on 1 block from START to END, inserting a new remainder in START.
+    uint64_t shift_right_and_set(uint64_t Start_quotient,uint64_t end_quotient, uint64_t new_remainder);
+
     //get a reminder given a position
-    uint64_t Cqf::get_remainder(uint64_t position) const;
+    uint64_t get_remainder(uint64_t position) const;
 
     //set a reminder on a specified position
-    uint64_t Cqf::set_remainder(uint64_t positon, uint64_t value);
+    uint64_t set_remainder(uint64_t positon, uint64_t value);
 
     // remove a reminder given a number
-    uint64_t Cqf::remove_remainder(uint64_t reminder);
+    uint64_t remove_remainder(uint64_t reminder);
 
     //get the value of the runend at a certain position
-    uint64_t Cqf::runend_value(uint64_t position) const;
+    uint64_t runend_value(uint64_t position) const;
     
     // check if the occupied slot of a given position is set to 1
-    bool Cqf::is_occupied(uint64_t position) const;
+    bool is_occupied(uint64_t position) const;
 
     // find first unused slot given a position
-    uint64_t Cqf::first_unused_slot(uint64_t position) const;
+    uint64_t first_unused_slot(uint64_t position) const;
     
     // give the result of select(rank(x))
-    uint64_t Cqf::runend_pos(uint64_t position) const;
+    uint64_t runend_pos(uint64_t position) const;
 
     // get offset of the selected quotient
-    uint64_t Cqf::get_offset(uint64_t block, uint64_t pos_in_block) const;
+    uint64_t get_offset(uint64_t block, uint64_t pos_in_block) const;
 
     /*
     Oi = SELECT(runends,RANK(occupieds,i)) - i, if > 0 else 0. 
     */
-    void Cqf::set_offset(uint64_t value, uint64_t position);
+    void set_offset(uint64_t value, uint64_t position);
 
     /*
 
@@ -105,19 +108,19 @@ class Cqf {
     */
 
     //perform the get_reminder at the block level
-    uint64_t Cqf::get_reminder_block(uint64_t slot) const;
+    uint64_t get_reminder_block(uint64_t slot) const;
 
     // perform the set_reminder at the block level 
-    uint64_t Cqf::set_reminder_block(uint64_t slot); 
+    uint64_t set_reminder_block(uint64_t slot); 
     
     // perform the remove reminder at the block level
-    uint64_t Cqf::remove_reminder_block(uint64_t slot); 
+    uint64_t remove_reminder_block(uint64_t slot); 
 
     // perform the is_occupied at the block level
-    bool Cqf::is_occupied_block(uint64_t position) const; 
+    bool is_occupied_block(uint64_t position) const; 
 
     // perform the runend_position at the block level
-    uint64_t Cqf::runend_pos_block(uint64_t position) const;
+    uint64_t runend_pos_block(uint64_t position) const;
 
 
     /*
@@ -125,26 +128,34 @@ class Cqf {
     SMALL LEVEL OPERATIONS
 
     */
+    uint64_t get_remainder_word_position(uint64_t quotient);
+
+    uint64_t get_remainder_shift_position(uint64_t quotient);
 
     // rank operation 
-    uint64_t Cqf::rank(uint64_t value); 
+    uint64_t rank(uint64_t value); 
 
     // select operation
-    uint64_t Cqf::select(uint64_t value); 
+    uint64_t select(uint64_t value); 
 
     // set bits in the CQF given the position, bits into a uint64_t and the number of bits to set
-    void Cqf::set_bits(uint64_t pos, uint64_t set_bits, uint64_t len); 
+    void set_bits(uint64_t block,uint64_t shift, uint64_t value, uint64_t len);
+    void set_bits(uint64_t pos, uint64_t value, uint64_t len); 
 
     // get bits from the CQF given a position and the number of bits to get
-    uint64_t Cqf::get_bits(uint64_t pos, uint64_t len) const;
+    uint64_t get_bits(uint64_t block,uint64_t shift, uint64_t len) const ;
+    uint64_t get_bits(uint64_t pos, uint64_t len) const;
 
     // set an entire word in the CQF (64 bits) given a position
-    void Cqf::set_word(uint64_t word, uint64_t pos);
+    void set_word(uint64_t word, uint64_t pos);
 
     // get an entire word in the CQF (64 bits) given a position
-    uint64_t Cqf::get_word(uint64_t pos) const;
+    uint64_t get_word(uint64_t pos) const;
 
-    uint64_t Cqf::get_bit_from_word(uint64_t word, uint64_t pos_bit) const;
+    uint64_t get_bit_from_word(uint64_t word, uint64_t pos_bit) const;
+    
+    //get the next word where remainders are stored. used for shifting remainders. 
+    uint64_t get_next_remainder_word(uint64_t current_word) const;
 
 
     /*

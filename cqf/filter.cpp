@@ -39,11 +39,11 @@ Cqf::Cqf( uint64_t quotient_s ){
     
 }
 
-void Cqf::resize(uint64_t new_size){}
+//void Cqf::resize(uint64_t new_size){}
 
-void Cqf::load(){}
+//void Cqf::load(){}
 
-void Cqf::save(){}
+//void Cqf::save(){}
 
 /*
 
@@ -59,7 +59,9 @@ uint64_t Cqf::num_64bit_words() const {
         return cqf.size();
     }
 
- uint64_t Cqf::num_reminders_in_filter() const{}
+ uint64_t Cqf::num_reminders_in_filter() const{
+    return 0;
+ }
 
 /*
 
@@ -95,7 +97,7 @@ uint64_t Cqf::query(uint64_t number) const{
     uint64_t runend_pos = q + offset;
 
     uint64_t runend = 0;
-    while((runend_pos >= q) && (runend ==0)){
+    while((runend_pos >= q) && (runend == 0)){
 
         uint64_t remainder_in_filter = get_remainder(runend_pos); 
         if (remainder_in_filter == r) return 1;
@@ -104,17 +106,6 @@ uint64_t Cqf::query(uint64_t number) const{
     }
     return 0;
 }
-
-/*
-    //get runend of quotient
-    uint64_t runend_pos = 0;
-    uint64_t runend_block = block;
-    if ((pos_in_block+offset) > MEM_UNIT) {
-        runend_pos =  (pos_in_block+offset) % MEM_UNIT;
-        ++runend_block;
-    }
-    else runend_pos = pos_in_block + offset;
-*/
 
 
 uint64_t Cqf::remove(uint64_t number){
@@ -130,6 +121,61 @@ uint64_t Cqf::remove(uint64_t number){
 MID LEVEL OPERATIONS
 
 */
+
+uint64_t Cqf::shift_right_and_set(uint64_t Start_quotient,uint64_t end_quotient, uint64_t next_remainder){
+    assert(Start_quotient < end_quotient);
+    assert(end_quotient < ( 1ULL << quotient_size));
+
+    uint64_t curr_word_pos = get_remainder_word_position(Start_quotient);
+    uint64_t curr_word_shift = get_remainder_shift_position(Start_quotient);
+
+    uint64_t end_word_pos = get_remainder_word_position(end_quotient);
+    uint64_t end_word_shift = get_remainder_shift_position(end_quotient);
+
+    assert(end_word_pos * MEM_UNIT + end_word_shift + remainder_size < num_bits());
+
+    uint64_t to_shift = 0;
+    //uint64_t word_difference = word_end_pos - word_start_pos;
+
+    //case in which I am going to end shifting in a different word and
+    // the remainder to set is between two different words
+    // just the first operation in the word, then is the same 
+    if ((curr_word_pos < end_word_pos) && (curr_word_shift + remainder_size >= MEM_UNIT)){
+
+        to_shift = get_bits(curr_word_pos,curr_word_shift,remainder_size);
+
+        set_bits(curr_word_pos,curr_word_shift,next_remainder, remainder_size);
+
+        next_remainder = to_shift;
+        curr_word_shift = remainder_size - (MEM_UNIT - curr_word_shift);
+        curr_word_pos = get_next_remainder_word(curr_word_pos);
+    }
+
+    while (curr_word_pos < end_word_pos){
+
+        to_shift = get_bits(curr_word_pos,curr_word_shift,MEM_UNIT-curr_word_shift);
+
+        set_bits(curr_word_pos,curr_word_shift,next_remainder, remainder_size);
+
+        set_bits(curr_word_pos,curr_word_shift + remainder_size,to_shift, MEM_UNIT - curr_word_shift - remainder_size);
+
+        next_remainder = to_shift >> (MEM_UNIT - curr_word_shift - remainder_size);
+        curr_word_shift = 0;
+        curr_word_pos = get_next_remainder_word(curr_word_pos);
+    }
+
+    //save the bits that are gonna be moved.
+    to_shift = get_bits(curr_word_pos,curr_word_shift,end_word_shift-curr_word_shift);
+
+    //set the new_remainder bits into the word
+    set_bits(curr_word_pos,curr_word_shift,next_remainder,remainder_size);
+
+    //set the rest of the bits that had to be shifted
+    set_bits(curr_word_pos,curr_word_shift+remainder_size,to_shift,end_word_shift-curr_word_shift);
+
+    // HERE I SHOULD FIX THE RUNEND AND OCCUPIEDS AND OFFSET WORDS
+
+}
 
 
 uint64_t Cqf::get_remainder(uint64_t position) const{
@@ -180,13 +226,19 @@ bool Cqf::is_occupied(uint64_t position) const{
     return get_bit_from_word(get_occupieds(block) ,pos_in_block);
 }
 
-uint64_t Cqf::first_unused_slot(uint64_t position) const{}
+uint64_t Cqf::first_unused_slot(uint64_t position) const{
+    return 0;
+}
 
 
-uint64_t Cqf::runend_pos(uint64_t position) const{}
+uint64_t Cqf::runend_pos(uint64_t position) const{
+    return 0;
+}
 
 
-uint64_t Cqf::get_offset(uint64_t block, uint64_t pos_in_block) const{}
+uint64_t Cqf::get_offset(uint64_t block, uint64_t pos_in_block) const{
+    return 0;
+}
 
 
 void Cqf::set_offset(uint64_t value, uint64_t block_num){
@@ -208,19 +260,29 @@ BLOCK LEVEL OPERATIONS
 */
 
 
-uint64_t Cqf::get_reminder_block(uint64_t slot) const{}
+uint64_t Cqf::get_reminder_block(uint64_t slot) const{
+    return 0;
+}
 
 
-uint64_t Cqf::set_reminder_block(uint64_t slot){}
+uint64_t Cqf::set_reminder_block(uint64_t slot){
+    return 0;
+}
 
 
-uint64_t Cqf::remove_reminder_block(uint64_t slot){}
+uint64_t Cqf::remove_reminder_block(uint64_t slot){
+    return 0;
+}
 
 
-bool Cqf::is_occupied_block(uint64_t position) const{}
+bool Cqf::is_occupied_block(uint64_t position) const{
+    return 0;
+}
 
 
-uint64_t Cqf::runend_pos_block(uint64_t position) const{}
+uint64_t Cqf::runend_pos_block(uint64_t position) const{
+    return 0;
+}
 
 
 /*
@@ -228,12 +290,22 @@ uint64_t Cqf::runend_pos_block(uint64_t position) const{}
 SMALL LEVEL OPERATIONS
 
 */
+uint64_t Cqf::get_remainder_word_position(uint64_t quotient){
+    return (get_block(quotient) * (MET_UNIT + remainder_size) + MET_UNIT + ((remainder_size * get_shift(quotient)) / MEM_UNIT)); 
+}
+
+uint64_t Cqf::get_remainder_shift_position(uint64_t quotient){
+    return (get_shift(quotient) * remainder_size ) % MEM_UNIT;
+}
+
+uint64_t Cqf::rank(uint64_t value){
+    return 0;
+}
 
 
-uint64_t Cqf::rank(uint64_t value){}
-
-
-uint64_t Cqf::select(uint64_t value){} 
+uint64_t Cqf::select(uint64_t value){
+    return 0;
+} 
 
 
 void Cqf::set_word(uint64_t word, uint64_t pos){
@@ -241,26 +313,58 @@ void Cqf::set_word(uint64_t word, uint64_t pos){
 }
 
 
-void Cqf::set_bits(uint64_t pos, uint64_t bits_to_set, uint64_t len) {
-    assert(pos + len <= num_bits());
-    assert(len == MEM_UNIT or (bits_to_set >> len) == 0);
+void Cqf::set_bits(uint64_t block,uint64_t shift, uint64_t value, uint64_t len) {
+    assert((block * MEM_UNIT + shift + len) <= num_bits());
+    assert(len == MEM_UNIT or (value >> len) == 0);
     if (len == 0) return;
 
     uint64_t mask = mask_right(len);
-    uint64_t block = get_block(pos);
-    uint64_t shift = get_shift(pos);
+    value &= mask; // to be sure
 
     cqf[block] &= ~(mask << shift);
-    cqf[block] |= (bits_to_set << shift);
+    cqf[block] |= (value << shift);
 
     uint64_t stored = MEM_UNIT - shift;
 
     if (len > stored){
         cqf[block+1] &= ~(mask_right(len-stored));
-        cqf[block+1] |= (bits_to_set >> stored);
+        cqf[block+1] |= (value >> stored);
     }
 }
 
+void Cqf::set_bits(uint64_t pos, uint64_t value, uint64_t len) {
+    assert(pos + len <= num_bits());
+    assert(len == MEM_UNIT or (value >> len) == 0);
+    if (len == 0) return;
+
+    uint64_t mask = mask_right(len);
+    uint64_t block = get_block(pos);
+    uint64_t shift = get_shift(pos);
+    value &= mask;
+
+    cqf[block] &= ~(mask << shift);
+    cqf[block] |= (value << shift);
+
+    uint64_t stored = MEM_UNIT - shift;
+
+    if (len > stored){
+        cqf[block+1] &= ~(mask_right(len-stored));
+        cqf[block+1] |= (value >> stored);
+    }
+}
+
+uint64_t Cqf::get_bits(uint64_t word,uint64_t shift, uint64_t len) const {
+
+    assert(word < cqf.size());
+
+    if (!len) return 0;
+
+    uint64_t mask = mask_right(len);
+
+    if (shift + len <= MEM_UNIT) return (cqf[word] >> shift) & mask;
+
+    return (cqf[word] >> shift) | ((cqf[word+1] << (MEM_UNIT - shift)) & mask);
+}
 
 uint64_t Cqf::get_bits(uint64_t pos, uint64_t len) const {
 
@@ -296,6 +400,12 @@ uint64_t Cqf::get_bit_from_word(uint64_t word_pos_in_cqf, uint64_t pos_bit) cons
     assert(word_pos_in_cqf < cqf.size());
     return ((cqf[word_pos_in_cqf] >> pos_bit) & 0b1);
 }
+
+uint64_t Cqf::get_next_remainder_word(uint64_t current_word) const{
+    if ((current_word+1) % (MET_UNIT+remainder_size) > (MET_UNIT-1)) return ++current_word;
+    return (current_word+MET_UNIT);
+}
+
 
 
 /*
@@ -360,19 +470,19 @@ void Cqf::print_word(uint64_t pos) const{
 
 uint64_t Cqf::get_offset(uint64_t position) const{
     assert(position < number_blocks);
-    return cqf[position*(3+remainder_size)+OFF_POS];
+    return cqf[position*(MET_UNIT+remainder_size)+OFF_POS];
 }
 
 
 uint64_t Cqf::get_occupieds(uint64_t position) const{
     assert(position < number_blocks);
-    return cqf[position*(3+remainder_size)+OCC_POS];
+    return cqf[position*(MET_UNIT+remainder_size)+OCC_POS];
 }
 
 
 uint64_t Cqf::get_runends(uint64_t position) const{
     assert(position < number_blocks);
-    return cqf[position*(3+remainder_size)+RUN_POS];
+    return cqf[position*(MET_UNIT+remainder_size)+RUN_POS];
 }
 
 
@@ -394,6 +504,11 @@ bool Cqf::contains(uint64_t number) const{
 /*
 ADDITIONAL METHODS NOT USED BY THE CLASS
 */
+
+uint64_t mask_left(uint64_t numbits){
+    uint64_t mask = mask_right(numbits) << (MEM_UNIT - numbits);
+    return mask;
+}
 
 uint64_t mask_right(uint64_t numbits){
     uint64_t mask = -(numbits >= MEM_UNIT) | ((1ULL << numbits) - 1);
