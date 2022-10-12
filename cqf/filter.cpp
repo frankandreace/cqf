@@ -360,19 +360,19 @@ void Cqf::print_word(uint64_t pos) const{
 
 uint64_t Cqf::get_offset(uint64_t position) const{
     assert(position < number_blocks);
-    return cqf[position*(3+remainder_size)+OFF_POS];
+    return cqf[position*(MET_UNIT+remainder_size)+OFF_POS];
 }
 
 
 uint64_t Cqf::get_occupieds(uint64_t position) const{
     assert(position < number_blocks);
-    return cqf[position*(3+remainder_size)+OCC_POS];
+    return cqf[position*(MET_UNIT+remainder_size)+OCC_POS];
 }
 
 
 uint64_t Cqf::get_runends(uint64_t position) const{
     assert(position < number_blocks);
-    return cqf[position*(3+remainder_size)+RUN_POS];
+    return cqf[position*(MET_UNIT+remainder_size)+RUN_POS];
 }
 
 
