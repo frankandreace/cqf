@@ -88,10 +88,10 @@ class Cqf {
     bool is_occupied(uint64_t position) const;
 
     // find first unused slot given a position
-    uint64_t first_unused_slot(uint64_t position) const;
+    uint64_t first_unused_slot(uint64_t block, uint64_t pos_in_block) const;
     
     // give the result of select(rank(x))
-    uint64_t runend_pos(uint64_t position) const;
+    uint64_t runend_pos(uint64_t block, uint64_t pos_in_block) const;
 
     // get offset of the selected quotient
     uint64_t get_offset(uint64_t block, uint64_t pos_in_block) const;
@@ -119,10 +119,18 @@ class Cqf {
     // perform the is_occupied at the block level
     bool is_occupied_block(uint64_t position) const; 
 
-    // perform the runend_position at the block level
-    uint64_t runend_pos_block(uint64_t position) const;
 
+    /*
 
+    CIRCULAR CQF
+
+    */
+    //get the next word where remainders are stored. used for shifting remainders. 
+    uint64_t get_next_remainder_word(uint64_t current_word) const;
+    //get the next block number.  
+    uint64_t get_next_block(uint64_t current_block) const;
+    //get the next quotient
+    uint64_t get_next_quot(uint64_t current_quot) const;
     /*
 
     SMALL LEVEL OPERATIONS
@@ -153,9 +161,7 @@ class Cqf {
     uint64_t get_word(uint64_t pos) const;
 
     uint64_t get_bit_from_word(uint64_t word, uint64_t pos_bit) const;
-    
-    //get the next word where remainders are stored. used for shifting remainders. 
-    uint64_t get_next_remainder_word(uint64_t current_word) const;
+
 
 
     /*
