@@ -14,7 +14,8 @@ class Cqf {
     
     */
     // constructor
-    Cqf( uint64_t num_blocks); 
+    Cqf(uint64_t quotient_s); 
+    Cqf(uint64_t quotient_s, uint64_t n_blocks);
 
     //resize the cqf
     void resize(uint64_t new_size);
@@ -88,10 +89,12 @@ class Cqf {
     bool is_occupied(uint64_t position) const;
 
     // find first unused slot given a position
-    uint64_t first_unused_slot(uint64_t block, uint64_t pos_in_block) const;
+    uint64_t first_unused_slot(uint64_t quotient) const;
     
     // give the result of select(rank(x))
-    uint64_t runend_pos(uint64_t block, uint64_t pos_in_block) const;
+    uint64_t get_runend_pos(uint64_t quotient) const;
+
+    std::pair<uint64_t,uint64_t> get_run_pos(uint64_t quotient) const;
 
     // get offset of the selected quotient
     uint64_t get_offset(uint64_t block, uint64_t pos_in_block) const;
@@ -127,10 +130,16 @@ class Cqf {
     */
     //get the next word where remainders are stored. used for shifting remainders. 
     uint64_t get_next_remainder_word(uint64_t current_word) const;
+    //get the previous word where remainders are stored. used for shifting remainders. 
+    uint64_t get_prev_remainder_word(uint64_t current_word) const;
     //get the next block number.  
     uint64_t get_next_block(uint64_t current_block) const;
+    //get the prev block number. 
+    uint64_t get_prev_block(uint64_t current_block) const;
     //get the next quotient
     uint64_t get_next_quot(uint64_t current_quot) const;
+    //get the previous quotient
+    uint64_t get_prev_quot(uint64_t current_quot) const;
     /*
 
     SMALL LEVEL OPERATIONS
@@ -175,6 +184,7 @@ class Cqf {
     void print_slice(uint64_t pos, uint64_t len) const;
     void print_bits(uint64_t pos, uint64_t len) const;
     void print_word(uint64_t pos) const;
+    void print_filter() const;
 
     // get the offset bitvector number 'pos' in the cqf
     uint64_t get_offset(uint64_t pos) const; 
@@ -187,7 +197,11 @@ class Cqf {
 
     bool contains(uint64_t number) const;
 
-
+    uint64_t get_num_bits() const;
+    uint64_t get_quotient_size() const;
+    uint64_t get_remainder_size() const;
+    uint64_t get_number_blocks() const;
+    uint64_t get_block_size() const;
 
     private:
 
@@ -198,6 +212,7 @@ class Cqf {
     uint64_t quotient_size; // value of q
     uint64_t remainder_size;    // value of r
     uint64_t number_blocks; // number of blocks the cqf is divided into
+    uint64_t block_size;
 
     // FUNCTIONS
 
