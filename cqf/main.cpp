@@ -55,8 +55,14 @@ int main(int argc, char** argv) {
     cqf.print_bits(128,64);
     */
 
-   test_rank_and_select(num_el_test_vector);
-    
+   //test_rank_and_select(num_el_test_vector);
+    uint64_t quotient_size = 24;
+    uint64_t num_blocks = 3;
+    Cqf cqf(quotient_size,num_blocks);
+
+    std::cout << cqf.
+
+    cqf.print_filter();
 
 
     /*
