@@ -8,9 +8,6 @@
 
 #include "filter.hpp" //header in local directory
 
-//using namespace std;
-
-
 // STATIC VARIABLES 
 #define MEM_UNIT 64
 #define MET_UNIT 3
@@ -76,32 +73,44 @@ uint64_t Cqf::num_64bit_words() const {
     return 0;
  }
 
+
 /*
 
 HIGH LEVEL OPERATIONS
 
 */
 
-
 uint64_t Cqf::insert(uint64_t number){
     //get quotient q and remainder r
-    uint64_t q = quotient(number);
-    uint64_t r = remainder(number);
-
-    //get the block number and position in the block of the quotient
-    uint64_t block = get_block(q);
-    uint64_t pos_in_block = get_shift(q);
-
-    // TODO:
-    // THIS SHOULD BE
+    uint64_t quot = quotient(number);
+    uint64_t rem = remainder(number);
 
     // GET FIRST UNUSED SLOT
+    uint64_t fu_slot = first_unused_slot(quot);
+    
+    // IF THE QUOTIENT HAS NEVER BEEN USED BEFORE
+    //JUST PUT THE REMAINDER AT THE END OF THE RUN OF THE PREVIOUS USED QUOTIENT 
+    if (is_occupied(quot) == false) return shift_right_and_set(get_next_quot(get_remainder(quot)), fu_slot, rem);
 
+    // IF THE QUOTIENT HAS BEEN USED BEFORE
     // GET POSITION WHERE TO INSERT TO (BASED ON VALUE) IN THE RUN (INCREASING ORDER)
+    else{
+    //getting boundaries of the run
+    std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
 
-    // SHIFT EVERYTHING RIGHT
+    //find the place where the remainder should be inserted / all similar to a query
+    //getting position where to start shifting right
+    uint64_t position = boundary.first;
 
-    //INSERT ON POSITION
+    while(position <= boundary.second){
+        uint64_t remainder_in_filter = get_remainder(position); 
+        if (remainder_in_filter > rem) break;
+    }
+
+    // SHIFT EVERYTHING RIGHT AND INSERTING THE NEW REMINDER
+    return shift_right_and_set(position, fu_slot, rem);
+    }
+
 }
 
 
@@ -112,12 +121,26 @@ uint64_t Cqf::query(uint64_t number) const{
 
     if (is_occupied(quot) == false) return 0;
 
-    //get runend of quotient
-    uint64_t runend_pos = get_runend_pos(quot);
+    std::pair<uint64_t,uint64_t> boundary = get_run_boundaries(quot);
 
     // TODO:
-    // THIS SHOULD BE BINARY SEARCH
+    // OPTIMIZE TO LOG LOG SEARCH ?
 
+    uint64_t position = boundary.first;
+
+    while(position <= boundary.second){
+        uint64_t remainder_in_filter = get_remainder(position); 
+        if (remainder_in_filter == rem) return 1;
+        else if (remainder_in_filter > rem) return 0;
+        position = get_next_quot(position);
+    }
+
+    return 0;
+
+
+    /*
+    OLD VERSION
+    uint64_t runend_pos = get_runend_pos(quot);
     uint64_t runend = 0;
     while((runend_pos >= quot) && (runend == 0)){
 
@@ -127,6 +150,7 @@ uint64_t Cqf::query(uint64_t number) const{
         runend = runend_value(runend_pos);
     }
     return 0;
+    */
 }
 
 
@@ -158,17 +182,70 @@ MID LEVEL OPERATIONS
 */
 
 // TO FINISH
-uint64_t Cqf::shift_right_and_set(uint64_t Start_quotient,uint64_t end_quotient, uint64_t next_remainder){
-    assert(Start_quotient < end_quotient);
-    assert(end_quotient < ( 1ULL << quotient_size));
+uint64_t Cqf::shift_right_and_set(uint64_t start_quotient,uint64_t end_quotient, uint64_t next_remainder){
+    assert(start_quotient < end_quotient);
+    assert(end_quotient < ( 1ULL << quotient_size)); //( 1ULL << quotient_size));
 
-    uint64_t curr_word_pos = get_remainder_word_position(Start_quotient);
-    uint64_t curr_word_shift = get_remainder_shift_position(Start_quotient);
+    uint64_t curr_word_pos = get_remainder_word_position(start_quotient);
+    uint64_t curr_word_shift = get_remainder_shift_position(start_quotient);
 
     uint64_t end_word_pos = get_remainder_word_position(end_quotient);
     uint64_t end_word_shift = get_remainder_shift_position(end_quotient);
 
     assert(end_word_pos * MEM_UNIT + end_word_shift + remainder_size < num_bits());
+
+    uint64_t to_shift = 0;
+    //uint64_t word_difference = word_end_pos - word_start_pos;
+
+    //case in which I am going to end shifting in a different word and
+    // the remainder to set is between two different words
+    // just the first operation in the word, then is the same 
+    if ((curr_word_pos < end_word_pos) && (curr_word_shift + remainder_size >= MEM_UNIT)){
+
+        to_shift = get_bits(curr_word_pos,curr_word_shift,remainder_size);
+
+        set_bits(curr_word_pos,curr_word_shift,next_remainder, remainder_size);
+
+        next_remainder = to_shift;
+        curr_word_shift = remainder_size - (MEM_UNIT - curr_word_shift);
+        curr_word_pos = get_next_remainder_word(curr_word_pos);
+    }
+
+    while (curr_word_pos < end_word_pos){
+
+        to_shift = get_bits(curr_word_pos,curr_word_shift,MEM_UNIT-curr_word_shift);
+
+        set_bits(curr_word_pos,curr_word_shift,next_remainder, remainder_size);
+
+        set_bits(curr_word_pos,curr_word_shift + remainder_size,to_shift, MEM_UNIT - curr_word_shift - remainder_size);
+
+        next_remainder = to_shift >> (MEM_UNIT - curr_word_shift - remainder_size);
+        curr_word_shift = 0;
+        curr_word_pos = get_next_remainder_word(curr_word_pos);
+    }
+
+    //save the bits that are gonna be moved.
+    to_shift = get_bits(curr_word_pos,curr_word_shift,end_word_shift-curr_word_shift);
+
+    //set the new_remainder bits into the word
+    set_bits(curr_word_pos,curr_word_shift,next_remainder,remainder_size);
+
+    //set the rest of the bits that had to be shifted
+    set_bits(curr_word_pos,curr_word_shift+remainder_size,to_shift,end_word_shift-curr_word_shift);
+
+    // HERE I SHOULD FIX THE RUNEND AND OCCUPIEDS AND OFFSET WORDS
+
+}
+
+uint64_t Cqf::shift_right_and_set_circ(uint64_t start_quotient,uint64_t end_quotient, uint64_t next_remainder){
+    assert(start_quotient < ( 1ULL << quotient_size));
+    assert(end_quotient < ( 1ULL << quotient_size)); //( 1ULL << quotient_size));
+
+    uint64_t curr_word_pos = get_remainder_word_position(start_quotient);
+    uint64_t curr_word_shift = get_remainder_shift_position(start_quotient);
+
+    uint64_t end_word_pos = get_remainder_word_position(end_quotient);
+    uint64_t end_word_shift = get_remainder_shift_position(end_quotient);
 
     uint64_t to_shift = 0;
     //uint64_t word_difference = word_end_pos - word_start_pos;
@@ -262,18 +339,26 @@ bool Cqf::is_occupied(uint64_t position) const{
     return get_bit_from_word(get_occupieds(block) ,pos_in_block);
 }
 
-// find first unused slot given a position
-uint64_t Cqf::first_unused_slot(uint64_t quotient) const{
 
-    uint64_t rend_pos = get_runend_pos(quotient);
-    while (quotient <= rend_pos){
-        quotient = get_next_quot(rend_pos);
-        rend_pos = (quotient);
+// find first unused slot given a position
+uint64_t Cqf::first_unused_slot(uint64_t curr_quotient) const{
+    assert(curr_quotient < ( 1ULL << quotient_size));
+    uint64_t rend_pos = sel_rank_filter(curr_quotient);
+    
+    //preventing erroneous stop when it jumps from the end of the filter to the beginning 
+    // and curr_quot > rend_pos for the circularity and not beacuse there is free space.
+    uint64_t last_rend = rend_pos;
+    while((curr_quotient < rend_pos) || (last_rend > rend_pos)){
+        last_rend = rend_pos;
+        curr_quotient = get_next_quot(rend_pos);
+        rend_pos = sel_rank_filter(curr_quotient);
     }
-    return quotient;
+
+    return curr_quotient;
 }
 
-uint64_t Cqf::get_runend_pos(uint64_t quotient) const{
+uint64_t Cqf::sel_rank_filter(uint64_t quotient) const{
+    assert(quotient < ( 1ULL << quotient_size));
 
     uint64_t block = get_block(quotient);
     uint64_t pos_in_block = get_shift(quotient);
@@ -289,15 +374,15 @@ uint64_t Cqf::get_runend_pos(uint64_t quotient) const{
 
         block = get_next_block(block);
         position -= bitrank(runends,MEM_UNIT-1);
-        uint64_t runends = get_runends(block);
-        select = bitselect(runends,position);
+        select = bitselect(get_runends(block),position);
         
     }
 
     return block * MEM_UNIT + select;
 }
 
-std::pair<uint64_t,uint64_t> Cqf::get_run_pos(uint64_t quotient) const{
+std::pair<uint64_t,uint64_t> Cqf::get_run_boundaries(uint64_t quotient) const{
+    assert(quotient < m_num_bits);
 
     uint64_t block = get_block(quotient);
     uint64_t pos_in_block = get_shift(quotient);
@@ -305,24 +390,33 @@ std::pair<uint64_t,uint64_t> Cqf::get_run_pos(uint64_t quotient) const{
     uint64_t occupied = get_occupieds(block);
     uint64_t runends = get_runends(block);
 
-    uint64_t position = bitrank(occupied,pos_in_block);
-    position += offset;
-    uint64_t select = bitselect(runends,position);
+    uint64_t position = bitrank(occupied,pos_in_block) + offset;
 
-    std::pair<uint64_t, uint64_t> boundaries;
+    // the start of the run is either the position in the block of the quotient or 
+    // the end of the previous run.
+    uint64_t start = bitselect(runends,position - 1);
+
+    uint64_t select = bitselect(runends,position);
 
     while (select == MEM_UNIT){
 
         block = get_next_block(block);
         position -= bitrank(runends,MEM_UNIT-1);
-        uint64_t runends = get_runends(block);
+        runends = get_runends(block);
         select = bitselect(runends,position);
+
+        if (start == MEM_UNIT){
+            start = bitselect(runends,position - 1);
+        }
         
     }
     
-    uint64_t start = block * MEM_UNIT + bitselect(runends,position-1);
-    if (start > quotient) boundaries.first = start;
-    else boundaries.first = quotient;
+    std::pair<uint64_t, uint64_t> boundaries;
+
+    start = block * MEM_UNIT + start;
+    //this should work for circular filter
+    if ((start < quotient) && (select > quotient)) boundaries.first = quotient;
+    else boundaries.first = start;
 
     boundaries.second = block * MEM_UNIT + select;
 

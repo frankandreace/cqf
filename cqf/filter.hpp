@@ -73,6 +73,9 @@ class Cqf {
     //shift remainders on 1 block from START to END, inserting a new remainder in START.
     uint64_t shift_right_and_set(uint64_t Start_quotient,uint64_t end_quotient, uint64_t new_remainder);
 
+    //shift remainders on 1 block from START to END, inserting a new remainder in START.
+    uint64_t shift_right_and_set_circ(uint64_t Start_quotient,uint64_t end_quotient, uint64_t new_remainder);
+
     //get a reminder given a position
     uint64_t get_remainder(uint64_t position) const;
 
@@ -92,9 +95,10 @@ class Cqf {
     uint64_t first_unused_slot(uint64_t quotient) const;
     
     // give the result of select(rank(x))
-    uint64_t get_runend_pos(uint64_t quotient) const;
+    uint64_t sel_rank_filter(uint64_t quotient) const;
 
-    std::pair<uint64_t,uint64_t> get_run_pos(uint64_t quotient) const;
+    // give the boundaries of a run of the filter
+    std::pair<uint64_t,uint64_t> get_run_boundaries(uint64_t quotient) const;
 
     // get offset of the selected quotient
     uint64_t get_offset(uint64_t block, uint64_t pos_in_block) const;
