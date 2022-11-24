@@ -76,6 +76,12 @@ class Cqf {
     //shift remainders on 1 block from START to END, inserting a new remainder in START.
     uint64_t shift_right_and_set_circ(uint64_t Start_quotient,uint64_t end_quotient, uint64_t new_remainder);
 
+    //adjust runends and offsets
+    void update_rend_off(uint64_t quot_value,uint64_t start_pos,uint64_t end_pos);
+
+    // find last element on the right that should be moved left when deleting a reminder from the filter
+    uint64_t find_rightmost_to_shift_left(uint64_t start_pos, uint64_t end_slot) const;
+
     //get a reminder given a position
     uint64_t get_remainder(uint64_t position) const;
 
@@ -191,13 +197,15 @@ class Cqf {
     void print_filter() const;
 
     // get the offset bitvector number 'pos' in the cqf
-    uint64_t get_offset(uint64_t pos) const; 
+    uint64_t get_offset(uint64_t pos) const;
+    void set_offset(uint64_t pos, uint64_t value);
 
     // get the occupieds bitvector number 'pos' in the cqf
     uint64_t get_occupieds(uint64_t pos) const; 
     
     // get the runends bitvector number 'pos' in the cqf
-    uint64_t get_runends(uint64_t pos) const;  
+    uint64_t get_runends(uint64_t pos) const;
+    void set_runends(uint64_t pos, uint64_t value);  
 
     bool contains(uint64_t number) const;
 

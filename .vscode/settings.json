@@ -59,6 +59,7 @@
         "__hash_table": "cpp",
         "__split_buffer": "cpp",
         "queue": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "__node_handle": "cpp"
     }
 }
