@@ -375,12 +375,29 @@ uint64_t Cqf::find_rightmost_to_shift_left(uint64_t start_pos, uint64_t end_pos)
 
     // #1 get occupieds, offset and runend word
     uint64_t rend_word = get_runends(curr_block);
-    uint64_t occupieds = get_occupieds(curr_block);
-    uint64_t off_word = get_offset(curr_block);
+    uint64_t occ_word = get_occupieds(curr_block);
+    uint64_t offset = get_offset(curr_block);
+
+    uint64_t end_of_shift = 0; //store the end of the shifting window here
+    uint64_t sel_occ = 0;
+    uint64_t sel_rend = 0;
+    uint64_t s_int = 0; // start of the interval for select
+    uint64_t e_int = 0; //end of the interval for select
 
     while (curr_block != end_block)
     {
-        // #2 
+        s_int = bitrank(occ_word,curr_pos_in_block);
+        e_int = bitrank(occ_word,MEM_UNIT);
+
+        for (uint64_t i=s_int; i < e_int; ++i){
+            
+            sel_occ = bitselect(occ_word,i);
+            sel_rend = bitselect(rend_word,i+offset-1);
+            if (sel_occ >= sel_rend){
+                end_of_shift = sel_rend;
+                break;
+            }
+        }
     }
     
 }
