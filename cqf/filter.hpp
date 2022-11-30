@@ -76,6 +76,9 @@ class Cqf {
     //shift remainders on 1 block from START to END, inserting a new remainder in START.
     uint64_t shift_right_and_set_circ(uint64_t Start_quotient,uint64_t end_quotient, uint64_t new_remainder);
 
+    //shift left remainders on 1 block from START to END, clearing the END block.
+    uint64_t shift_left_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient);
+
     //adjust runends and offsets
     void update_rend_off(uint64_t quot_value,uint64_t start_pos,uint64_t end_pos);
 
@@ -112,7 +115,7 @@ class Cqf {
     /*
     Oi = SELECT(runends,RANK(occupieds,i)) - i, if > 0 else 0. 
     */
-    void set_offset(uint64_t value, uint64_t position);
+    //void set_offset(uint64_t value, uint64_t position);
 
     /*
 
@@ -198,6 +201,7 @@ class Cqf {
 
     // get the offset bitvector number 'pos' in the cqf
     uint64_t get_offset(uint64_t pos) const;
+
     void set_offset(uint64_t pos, uint64_t value);
 
     // get the occupieds bitvector number 'pos' in the cqf
@@ -247,6 +251,8 @@ uint64_t get_block(uint64_t position);
 //give the position of the quotient in the block
 uint64_t get_shift(uint64_t position); 
 
+//give the quotient from a block and shift
+uint64_t get_quot_from_block_shift(uint64_t block, uint64_t shift);
 
 
 /*
