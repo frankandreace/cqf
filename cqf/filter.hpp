@@ -79,8 +79,11 @@ class Cqf {
     //shift left remainders on 1 block from START to END, clearing the END block.
     uint64_t shift_left_and_rem_circ(uint64_t start_quotient,uint64_t end_quotient);
 
-    //adjust runends and offsets
-    void update_rend_off(uint64_t quot_value,uint64_t start_pos,uint64_t end_pos);
+    //update occupieds, runends and offsets based on the insertion
+    void update_metadata_insertion(uint64_t quot_value,uint64_t start_pos,uint64_t end_pos);
+
+    //update occupieds, runends and offsets based on the delition
+    void update_metadata_deletion(std::pair<uint64_t,uint64_t> boundary, uint64_t start_pos, uint64_t end_pos, uint64_t quotient_pos);
 
     // find last element on the right that should be moved left when deleting a reminder from the filter
     uint64_t find_rightmost_to_shift_left(uint64_t start_pos, uint64_t end_slot) const;
@@ -145,14 +148,41 @@ class Cqf {
     uint64_t get_next_remainder_word(uint64_t current_word) const;
     //get the previous word where remainders are stored. used for shifting remainders. 
     uint64_t get_prev_remainder_word(uint64_t current_word) const;
+    
+    //get the next word where remainders are stored. used for shifting remainders. 
+    uint64_t get_next_runend_word(uint64_t current_word) const;
+    //get the previous word where remainders are stored. used for shifting remainders. 
+    uint64_t get_prev_runend_word(uint64_t current_word) const;
+    
     //get the next block number.  
     uint64_t get_next_block(uint64_t current_block) const;
     //get the prev block number. 
     uint64_t get_prev_block(uint64_t current_block) const;
+    
     //get the next quotient
     uint64_t get_next_quot(uint64_t current_quot) const;
     //get the previous quotient
     uint64_t get_prev_quot(uint64_t current_quot) const;
+    
+    //get previous word in filter
+    uint64_t get_prev_word(uint64_t current_w) const;
+    //get next word in filter
+    uint64_t get_next_word(uint64_t current_w) const;
+
+
+    // get and set the occupieds word in the block number 'pos' of the cqf
+    uint64_t get_occupieds(uint64_t pos) const; 
+    void set_occupieds(uint64_t position, uint64_t word);
+    
+    // get and set the offset word in the block number 'pos' of the cqf
+    uint64_t get_offset(uint64_t pos) const;
+    void set_offset(uint64_t pos, uint64_t value);
+    
+    // get and set the runends word in the block number 'pos' of the cqf
+    uint64_t get_runends(uint64_t pos) const;
+    void set_runends(uint64_t pos, uint64_t value);  
+
+
     /*
 
     SMALL LEVEL OPERATIONS
@@ -169,12 +199,12 @@ class Cqf {
     uint64_t select(uint64_t value); 
 
     // set bits in the CQF given the position, bits into a uint64_t and the number of bits to set
+    void set_bits_remainders(uint64_t pos,uint64_t shift, uint64_t value, uint64_t len);
     void set_bits(uint64_t block,uint64_t shift, uint64_t value, uint64_t len);
-    void set_bits(uint64_t pos, uint64_t value, uint64_t len); 
 
     // get bits from the CQF given a position and the number of bits to get
+    uint64_t get_bits_remainders(uint64_t word_pos,uint64_t shift, uint64_t len) const;
     uint64_t get_bits(uint64_t block,uint64_t shift, uint64_t len) const ;
-    uint64_t get_bits(uint64_t pos, uint64_t len) const;
 
     // set an entire word in the CQF (64 bits) given a position
     void set_word(uint64_t word, uint64_t pos);
@@ -199,19 +229,8 @@ class Cqf {
     void print_word(uint64_t pos) const;
     void print_filter() const;
 
-    // get the offset bitvector number 'pos' in the cqf
-    uint64_t get_offset(uint64_t pos) const;
-
-    void set_offset(uint64_t pos, uint64_t value);
-
-    // get the occupieds bitvector number 'pos' in the cqf
-    uint64_t get_occupieds(uint64_t pos) const; 
-    
-    // get the runends bitvector number 'pos' in the cqf
-    uint64_t get_runends(uint64_t pos) const;
-    void set_runends(uint64_t pos, uint64_t value);  
-
-    bool contains(uint64_t number) const;
+    uint64_t get_bits_custom(uint64_t pos, uint64_t len) const;
+    void set_bits_custom(uint64_t pos, uint64_t value, uint64_t len); 
 
     uint64_t get_num_bits() const;
     uint64_t get_quotient_size() const;
@@ -220,7 +239,6 @@ class Cqf {
     uint64_t get_block_size() const;
 
     private:
-
     // VALUES
 
     std::vector<uint64_t> cqf; // uint64_t vector to store the cqf
