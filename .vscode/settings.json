@@ -60,6 +60,11 @@
         "__split_buffer": "cpp",
         "queue": "cpp",
         "__locale": "cpp",
-        "__node_handle": "cpp"
+        "__node_handle": "cpp",
+        "__bit_reference": "cpp",
+        "__functional_base": "cpp",
+        "__memory": "cpp",
+        "locale": "cpp",
+        "ios": "cpp"
     }
 }

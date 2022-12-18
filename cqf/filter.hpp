@@ -116,27 +116,22 @@ class Cqf {
     uint64_t get_offset(uint64_t block, uint64_t pos_in_block) const;
 
     /*
-    Oi = SELECT(runends,RANK(occupieds,i)) - i, if > 0 else 0. 
-    */
-    //void set_offset(uint64_t value, uint64_t position);
-
-    /*
 
     BLOCK LEVEL OPERATIONS
     
     */
 
     //perform the get_reminder at the block level
-    uint64_t get_reminder_block(uint64_t slot) const;
+    //uint64_t get_reminder_block(uint64_t slot) const;
 
     // perform the set_reminder at the block level 
-    uint64_t set_reminder_block(uint64_t slot); 
+    //uint64_t set_reminder_block(uint64_t slot); 
     
     // perform the remove reminder at the block level
-    uint64_t remove_reminder_block(uint64_t slot); 
+    //uint64_t remove_reminder_block(uint64_t slot); 
 
     // perform the is_occupied at the block level
-    bool is_occupied_block(uint64_t position) const; 
+    //bool is_occupied_block(uint64_t position) const; 
 
 
     /*
@@ -171,9 +166,9 @@ class Cqf {
 
 
     // get and set the occupieds word in the block number 'pos' of the cqf
-    uint64_t get_occupieds(uint64_t pos) const; 
-    void set_occupieds(uint64_t position, uint64_t word);
-    
+    uint64_t get_occupieds_word(uint64_t pos) const; 
+    void set_occupieds_bit(uint64_t position, uint64_t shift, uint64_t bit_value);
+    void set_occupieds_word(uint64_t position, uint64_t word);
     // get and set the offset word in the block number 'pos' of the cqf
     uint64_t get_offset(uint64_t pos) const;
     void set_offset(uint64_t pos, uint64_t value);
@@ -200,10 +195,12 @@ class Cqf {
 
     // set bits in the CQF given the position, bits into a uint64_t and the number of bits to set
     void set_bits_remainders(uint64_t pos,uint64_t shift, uint64_t value, uint64_t len);
+    void set_bits_runends(uint64_t pos,uint64_t shift, uint64_t value, uint64_t len);
     void set_bits(uint64_t block,uint64_t shift, uint64_t value, uint64_t len);
 
     // get bits from the CQF given a position and the number of bits to get
     uint64_t get_bits_remainders(uint64_t word_pos,uint64_t shift, uint64_t len) const;
+    uint64_t get_bits_runends(uint64_t word_pos,uint64_t shift, uint64_t len) const;
     uint64_t get_bits(uint64_t block,uint64_t shift, uint64_t len) const ;
 
     // set an entire word in the CQF (64 bits) given a position
@@ -214,7 +211,9 @@ class Cqf {
 
     uint64_t get_bit_from_word(uint64_t word, uint64_t pos_bit) const;
 
+    uint64_t shift_bits_left(uint64_t word_id,uint64_t shift, uint64_t insert, uint64_t len, uint64_t end);
 
+    uint64_t shift_bits_right(uint64_t word_id,uint64_t shift, uint64_t insert, uint64_t len);
 
     /*
 
